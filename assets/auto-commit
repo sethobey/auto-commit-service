@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+  echo "ERROR: Argument 1 \"Directory root\" must be provided!" 1>&2
+  exit 1
+fi
+
+if ! [ -d "$1"/.git ]; then
+  echo "ERROR: No git directory could be found! Are you sure the provided directory \""$1"\" is a git root?" 1>&2
+  exit 1
+fi
+
+COMMIT_MESSAGE=${2:-"Automated commit"}
+
+git -C "$1" add -A
+git -C "$1" commit -m "$COMMIT_MESSAGE"
+git -C "$1" push
+
+exit 0

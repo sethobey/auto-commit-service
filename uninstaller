@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PLIST_PATH="$HOME/Library/LaunchAgents/"
+PLIST_LABEL="com.github.$(whoami).auto-commit"
+PLIST_FILENAME="$PLIST_LABEL.plist"
+
+PROCESS="$(launchctl list | grep -c $PLIST_LABEL)"
+
+[[ "$PROCESS" == "0" ]] && echo "Process not found" 1>&2 && exit 1
+
+## If not called with &&, KeepAlive will re-start service before unload
+launchctl stop $PLIST_LABEL && launchctl unload -w $PLIST_PATH$PLIST_FILENAME
+
+SCRIPT_PATH="/usr/local/bin/$(whoami)/"
+SCRIPT_NAME="auto-commit"
+
+rm $SCRIPT_PATH$SCRIPT_NAME
+
+echo "All done!"

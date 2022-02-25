@@ -1,0 +1,78 @@
+#!/bin/bash
+
+if [[ "$(whoami)" == "root" ]]; then
+  echo "Looks like you're trying to run this install as root... Please don't." 1>&2; exit 1
+fi
+
+echo "Hi, thanks for trying my auto-commit tool for MacOS!"
+echo "Please feel free to open an issue or PR for bugs or features."
+echo -e "I<3OSS\n@sethobey\n"
+
+SCRIPT_SOURCE=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+echo -e "Now, lets get started...\n"
+
+DIR_PATH=""
+DIR_ATTEMPTS="0"
+
+while [ "$DIR_PATH" == "" ]; do
+  if [ "$DIR_ATTEMPTS" == "3" ]; then
+    echo -e "I can do this all day! Except for I really can't...\n"
+    echo "Maximum attempts exceeded... Please try again!" 1>&2; exit 1
+  fi
+  
+  read -p "Enter the full system path of the directory that you would like auto-commit: " PATH_INPUT
+
+  if [ "$PATH_INPUT" == "" ]; then
+    echo -e "System path cannot be blank.\n"
+  else
+    echo "You entered: $PATH_INPUT"
+    read -p "Is that correct? (Y/n) " CONFIRM
+    if [ "$CONFIRM" == "y" ] || [ "$CONFIRM" == "Y" ]; then
+      if ! [ -d "$PATH_INPUT" ]; then
+        echo -e "That path you entered doesn't appear to be valid... Let's try again!\n"
+      else
+        DIR_PATH="$PATH_INPUT"
+      fi
+    fi
+  fi
+
+  DIR_ATTEMPTS=$((DIR_ATTEMPTS + 1))
+done
+
+## Would like to allow customization of these vars eventually
+SCRIPT_PATH="/usr/local/bin/$(whoami)/"
+SCRIPT_NAME="auto-commit"
+
+echo "Installing auto-commit script..."
+mkdir -p "$SCRIPT_PATH"
+if ! [ -d "$SCRIPT_PATH" ]; then
+  echo "ERROR: Could not create script install path!" 1>&2; exit 1
+fi
+cp "$SCRIPT_SOURCE/assets/$SCRIPT_NAME" "$SCRIPT_PATH/$SCRIPT_NAME"
+chmod +x $SCRIPT_PATH/$SCRIPT_NAME
+
+## Would like to allow customization of these vars eventually
+SERVICE_LABEL="com.github.$(whoami).auto-commit"
+PLIST_PATH="$HOME/Library/LaunchAgents/"
+PLIST_STUB="auto-commit.plist.stub"
+PLIST_FILENAME="$SERVICE_LABEL.plist"
+COMMIT_INTERVAL="300"
+
+echo "Generating service..."
+mkdir -p "$PLIST_PATH"
+if ! [ -d "$PLIST_PATH" ]; then
+  echo "ERROR: Could not create LaunchAgent install path!" 1>&2; exit 1
+fi
+sed "s/SERVICE_LABEL/$SERVICE_LABEL/" "$SCRIPT_SOURCE/assets/$PLIST_STUB" > $PLIST_PATH$PLIST_FILENAME
+sed -i '' "s#PATH_TO_AUTOCOMMIT_SCRIPT#$SCRIPT_PATH$SCRIPT_NAME#" $PLIST_PATH$PLIST_FILENAME
+sed -i '' "s#PATH_TO_GIT_ROOT#$DIR_PATH#" $PLIST_PATH$PLIST_FILENAME
+sed -i '' "s/COMMIT_INTERVAL_IN_SECONDS/$COMMIT_INTERVAL/" $PLIST_PATH$PLIST_FILENAME
+
+echo "Starting service in launch daemon via launchctl..."
+launchctl load -w "$PLIST_PATH$PLIST_FILENAME"
+launchctl start "$SERVICE_LABEL"
+
+echo "All done! Happy auto-committing!"
+
+exit 0

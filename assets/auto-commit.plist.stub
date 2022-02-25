@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>KeepAlive</key>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
+
+	<key>Label</key>
+    <string>SERVICE_LABEL</string>
+	
+	<key>ProgramArguments</key>
+	<array>
+		<string>PATH_TO_AUTOCOMMIT_SCRIPT</string>
+		<string>PATH_TO_GIT_ROOT</string>
+	</array>
+
+	<key>RunAtLoad</key>
+	<false/>
+
+	<key>StartInterval</key>
+	<integer>COMMIT_INTERVAL_IN_SECONDS</integer>
+
+	<!-- Optionally, you may persist stdout and stderr to log files -->
+  
+    <!--
+    <key>StandardOutPath</key>
+	<string>PATH_TO_STDOUT_LOG</string>
+
+	<key>StandardOutPath</key>
+	<string>PATH_TO_STDERR_LOG</string>
+    -->
+</dict>
+</plist>
